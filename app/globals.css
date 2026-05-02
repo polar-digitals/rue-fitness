@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-space: var(--font-space), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-space), ui-sans-serif, system-ui, sans-serif;
+
+  /* Brand palette — improved contrast */
+  --color-brand: #6b2f87;
+  --color-brand-light: #9b5bb5;
+  --color-brand-dark: #3c1a49;
+  --color-brand-glow: rgba(107, 47, 135, 0.4);
+
+  /* Surface system — layered dark backgrounds for depth */
+  --color-bg: #0b0b0b;
+  --color-surface: #141414;
+  --color-surface-elevated: #1c1c1c;
+
+  /* Portal Map Aliases */
+  --color-ink: #ffffff;
+  --color-primary: #6b2f87;
+  --color-accent: #9b5bb5;
+}
+
+html { scroll-behavior: smooth; }
+* { box-sizing: border-box; }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--color-bg); }
+::-webkit-scrollbar-thumb { background: var(--color-brand); border-radius: 2px; }
+
+/* ── Animations ── */
+@keyframes float-up {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-float-up { animation: float-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards; opacity: 0; }
+.animate-fade-in { animation: fade-in 1s ease forwards; opacity: 0; }
+
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }
+
+/* ── Gradients & Effects ── */
+.text-gradient {
+  background: linear-gradient(135deg, #ffffff 0%, #dab8ec 50%, #b36fd4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.card-glow:hover {
+  box-shadow: 0 0 50px -10px rgba(107, 47, 135, 0.45);
+}
+
+.testimonial-quote::before {
+  content: '\201C';
+  font-size: 5rem;
+  line-height: 0.8;
+  color: rgba(107, 47, 135, 0.35);
+  font-family: Georgia, serif;
+  position: absolute;
+  top: 16px;
+  left: 24px;
+}
+
+/* ── Mobile Nav ── */
+.mobile-nav {
+  transform: translateX(100%);
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mobile-nav.open {
+  transform: translateX(0);
+}
