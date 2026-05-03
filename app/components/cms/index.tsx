@@ -7,6 +7,8 @@ import ScheduleManager from "./ScheduleManager";
 import ServiceManager from "./ServiceManager";
 import PricingManager from "./PricingManager";
 import AnnouncementManager from "./AnnouncementManager";
+import SettingsManager from "./SettingsManager";
+import { Settings } from "lucide-react";
 
 const TABS = [
   { key: "gallery", label: "Gallery", Icon: Images },
@@ -15,6 +17,7 @@ const TABS = [
   { key: "services", label: "Services", Icon: Dumbbell },
   { key: "pricing", label: "Pricing", Icon: CreditCard },
   { key: "announcements", label: "Alerts", Icon: Megaphone },
+  { key: "settings", label: "Settings", Icon: Settings },
 ];
 
 export default function CMSDashboard() {
@@ -47,6 +50,7 @@ export default function CMSDashboard() {
       {activeTab === "services" && <ServiceManager />}
       {activeTab === "pricing" && <PricingManager />}
       {activeTab === "announcements" && <AnnouncementManager />}
+      {activeTab === "settings" && <SettingsManager />}
     </div>
   );
 }

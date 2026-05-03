@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { Clock, User, ArrowRight, Filter } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { supabase } from "../components/StaffPortal";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../components/StaffPortal";
 
 const DAYS = [
   "ALL DAYS",
@@ -26,6 +26,7 @@ type ClassEntry = {
   session: "MORNING" | "EVENING";
   special?: boolean;
   bookable?: boolean;
+  id?: string;
 };
 
 const DEFAULT_CLASSES: ClassEntry[] = [
@@ -44,11 +45,29 @@ export default function ClassesPage() {
   const [activeDay, setActiveDay] = useState("ALL DAYS");
   const [activeSession, setActiveSession] = useState("ALL");
   const [schedule, setSchedule] = useState<ClassEntry[]>(DEFAULT_CLASSES);
+  const [settings, setSettings] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    supabase.from("schedule").select("*").then(({ data }: any) => {
-      if (data && data.length > 0) setSchedule(data);
-    });
+    async function loadContent() {
+      try {
+        const headers = { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` };
+        const [schRes, setRes] = await Promise.all([
+          fetch(`${SUPABASE_URL}/rest/v1/schedule?select=*`, { headers }),
+          fetch(`${SUPABASE_URL}/rest/v1/site_settings?select=*`, { headers })
+        ]);
+        if (schRes.ok) {
+          const data = await schRes.json();
+          if (data && data.length > 0) setSchedule(data);
+        }
+        if (setRes.ok) {
+          const data = await setRes.json();
+          const map: Record<string, string> = {};
+          data.forEach((i: any) => { map[i.id] = i.value; });
+          setSettings(map);
+        }
+      } catch (e) {}
+    }
+    loadContent();
   }, []);
 
   const filtered = schedule.filter((c) => {
@@ -67,7 +86,7 @@ export default function ClassesPage() {
       <section className="relative h-[75vh] min-h-[520px] flex flex-col items-center justify-center text-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <Image
-            src="/classes-hero.png"
+            src={settings.classes_hero_image || "/classes-hero.png"}
             alt="Group Class"
             fill
             className="object-cover object-top"
@@ -215,8 +234,11 @@ export default function ClassesPage() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="bg-[#0b0b0b] border-t border-white/[0.05] py-24 px-6 text-center relative overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[150px] bg-brand/20 rounded-full blur-[80px] pointer-events-none" />
+      <section className="relative py-28 px-6 text-center overflow-hidden bg-brand">
+        <div className="absolute inset-0">
+          <Image src={settings.cta_bg_image || "/hero-gym.png"} alt="" fill className="object-cover opacity-10 mix-blend-overlay" />
+          <div className="absolute inset-0 bg-gradient-to-r from-brand-dark/60 via-transparent to-brand-dark/60" />
+        </div>
         <div className="relative z-10 max-w-xl mx-auto">
           <h2 className="font-black uppercase tracking-tight font-space text-white text-3xl md:text-5xl mb-4 leading-tight">
             JOIN A <span className="text-brand-light">CLASS TODAY</span>

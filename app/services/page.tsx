@@ -1,10 +1,8 @@
-"use client";
-import Image from "next/image";
-import Link from "next/link";
-import { type JSX } from "react";
+import { useState, useEffect } from "react";
 import { ArrowRight, Dumbbell, Flame, Target } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../components/StaffPortal";
 
 // ── SVG Silhouette Icons ──
 const SvcIcons: Record<string, JSX.Element> = {
@@ -153,47 +151,54 @@ function ServiceCard({
   );
 }
 
-const CATEGORIES = [
+const CAT_META = [
   {
+    id: "Cardio & Dance",
     Icon: Flame,
     title: "Cardio & Dance-Based Workouts",
     desc: "Boost stamina and burn fat with high-energy cardio and dance workouts, including aerobics, cycling, HIIT, and more.",
-    services: [
-      { iconKey: "aerobics", title: "Aerobics", desc: "Rhythmic aerobic exercises for overall fitness." },
-      { iconKey: "zumba", title: "Zumba", desc: "Latin-inspired dance fitness party." },
-      { iconKey: "spinning", title: "Spinning (Cycling)", desc: "High-intensity indoor cycling classes." },
-      { iconKey: "dance", title: "Dance Fitness", desc: "Fun, high-energy dance sessions." },
-      { iconKey: "hiit", title: "HIIT Cardio", desc: "High Intensity Interval Training." },
-    ],
   },
   {
+    id: "Strength & Conditioning",
     Icon: Dumbbell,
     title: "Strength & Conditioning",
     desc: "Build muscle, strength, and endurance with structured training programs, functional exercises, and bodyweight challenges.",
-    services: [
-      { iconKey: "circuit", title: "Circuit Training", desc: "Fast-paced bodyweight and resistance circuit." },
-      { iconKey: "crossfit", title: "CrossFit", desc: "Functional fitness for total body strength." },
-      { iconKey: "strength", title: "Strength & Conditioning", desc: "Build muscle and athletic performance." },
-      { iconKey: "bodyweight", title: "Bodyweight Training", desc: "Master your own body weight." },
-      { iconKey: "functional", title: "Functional Training", desc: "Dynamic movements for real-world strength." },
-      { iconKey: "bootcamp", title: "Boot Camp", desc: "Intensive group training for rapid results." },
-      { iconKey: "core", title: "Core Training", desc: "Strengthen your core for stability." },
-      { iconKey: "muscle", title: "Muscle Building", desc: "Hypertrophy focused programs." },
-    ],
   },
   {
+    id: "Personalized Training",
     Icon: Target,
     title: "Personalized & Specialized Training",
     desc: "Achieve your fitness goals with tailored training sessions, specialized programs, and online coaching.",
-    services: [
-      { iconKey: "personal", title: "One-on-One Training", desc: "1-on-1 coaching customized to your goals." },
-      { iconKey: "weightloss", title: "Weight Loss Programs", desc: "Targeted programs for weight management." },
-      { iconKey: "online", title: "Online Coaching", desc: "Remote training plans and nutrition guidance." },
-    ],
   },
 ];
 
 export default function ServicesPage() {
+  const [settings, setSettings] = useState<Record<string, string>>({});
+  const [services, setServices] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function loadContent() {
+      try {
+        const headers = { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` };
+        const [sRes, svRes] = await Promise.all([
+          fetch(`${SUPABASE_URL}/rest/v1/site_settings?select=*`, { headers }),
+          fetch(`${SUPABASE_URL}/rest/v1/services?select=*&order=sort_order.asc`, { headers })
+        ]);
+        if (sRes.ok) {
+          const data = await sRes.json();
+          const map: Record<string, string> = {};
+          data.forEach((i: any) => { map[i.id] = i.value; });
+          setSettings(map);
+        }
+        if (svRes.ok) {
+          const data = await svRes.json();
+          setServices(data);
+        }
+      } catch (e) {}
+    }
+    loadContent();
+  }, []);
+
   return (
     <main className="min-h-screen bg-[#0b0b0b] text-white font-sans selection:bg-brand/30">
       <Navbar />
@@ -202,7 +207,7 @@ export default function ServicesPage() {
       <section className="relative h-[60vh] min-h-[450px] flex items-center justify-center text-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <Image
-            src="/hero-gym.png"
+            src={settings.services_hero_image || "/hero-gym.png"}
             alt="Services"
             fill
             className="object-cover"
@@ -230,50 +235,55 @@ export default function ServicesPage() {
       {/* ── SERVICE CATEGORIES ── */}
       <section className="py-20 bg-[#0b0b0b]">
         <div className="max-w-5xl mx-auto px-6 space-y-28">
-          {CATEGORIES.map((cat, ci) => (
-            <div key={ci}>
-              {/* Category Header */}
-              <div className="text-center mb-12">
-                <div className="w-14 h-14 rounded-xl bg-brand/15 border border-brand/25 flex items-center justify-center mx-auto mb-5">
-                  <cat.Icon className="w-7 h-7 text-brand-light" />
-                </div>
-                <h2 className="text-2xl md:text-3xl font-black uppercase tracking-wider text-white mb-3">
-                  {cat.title}
-                </h2>
-                <div className="w-12 h-0.5 bg-brand mx-auto mb-4" />
-                <p className="text-white/45 text-sm max-w-lg mx-auto leading-relaxed">
-                  {cat.desc}
-                </p>
-              </div>
+          {CAT_META.map((cat, ci) => {
+            const catServices = services.filter(s => s.category === cat.id);
+            if (catServices.length === 0) return null;
 
-              {/* Service Cards Grid */}
-              <div className="flex flex-wrap justify-center gap-4">
-                {cat.services.map((s, si) => (
-                  <div key={si} className="w-full sm:w-[calc(50%-1rem)] md:w-[calc(33.333%-1rem)] lg:w-[calc(25%-1rem)]">
-                    <ServiceCard {...s} />
+            return (
+              <div key={ci}>
+                {/* Category Header */}
+                <div className="text-center mb-12">
+                  <div className="w-14 h-14 rounded-xl bg-brand/15 border border-brand/25 flex items-center justify-center mx-auto mb-5">
+                    <cat.Icon className="w-7 h-7 text-brand-light" />
                   </div>
-                ))}
-              </div>
+                  <h2 className="text-2xl md:text-3xl font-black uppercase tracking-wider text-white mb-3">
+                    {cat.title}
+                  </h2>
+                  <div className="w-12 h-0.5 bg-brand mx-auto mb-4" />
+                  <p className="text-white/45 text-sm max-w-lg mx-auto leading-relaxed">
+                    {cat.desc}
+                  </p>
+                </div>
 
-              {/* CTA per category */}
-              <div className="text-center mt-10">
-                <Link
-                  href="/classes"
-                  className="group inline-flex items-center gap-3 bg-brand hover:bg-brand-light text-white px-8 py-3.5 rounded-xl text-sm font-bold uppercase tracking-widest transition-all shadow-lg shadow-brand/30 hover:shadow-brand/50"
-                >
-                  View Class Schedule
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
+                {/* Service Cards Grid */}
+                <div className="flex flex-wrap justify-center gap-4">
+                  {catServices.map((s, si) => (
+                    <div key={si} className="w-full sm:w-[calc(50%-1rem)] md:w-[calc(33.333%-1rem)] lg:w-[calc(25%-1rem)]">
+                      <ServiceCard iconKey={s.icon_key} title={s.title} desc={s.description} />
+                    </div>
+                  ))}
+                </div>
+
+                {/* CTA per category */}
+                <div className="text-center mt-10">
+                  <Link
+                    href="/classes"
+                    className="group inline-flex items-center gap-3 bg-brand hover:bg-brand-light text-white px-8 py-3.5 rounded-xl text-sm font-bold uppercase tracking-widest transition-all shadow-lg shadow-brand/30 hover:shadow-brand/50"
+                  >
+                    View Class Schedule
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
       {/* ── CTA ── */}
       <section className="relative py-28 px-6 text-center overflow-hidden bg-brand">
         <div className="absolute inset-0">
-          <Image src="/hero-gym.png" alt="" fill className="object-cover opacity-10 mix-blend-overlay" />
+          <Image src={settings.cta_bg_image || "/hero-gym.png"} alt="" fill className="object-cover opacity-10 mix-blend-overlay" />
           <div className="absolute inset-0 bg-gradient-to-r from-brand-dark/60 via-transparent to-brand-dark/60" />
         </div>
         <div className="relative z-10 max-w-3xl mx-auto">

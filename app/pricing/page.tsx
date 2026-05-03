@@ -1,81 +1,45 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Check, ArrowRight } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../components/StaffPortal";
 
 type PlanType = "gym" | "spa";
 type MemberType = "individual" | "couple" | "family";
 
-const PRICING_DATA: Record<
-  PlanType,
-  Record<
-    MemberType,
-    {
-      label: string;
-      price: number;
-      save?: string;
-      popular?: boolean;
-      best?: boolean;
-      features: string[];
-    }[]
-  >
-> = {
-  gym: {
-    individual: [
-      { label: "Day Pass", price: 1000, features: ["Unlimited Gym Access", "All Gym Equipment", "All Group Classes", "Locker Room Access"] },
-      { label: "1 Month", price: 7560, features: ["Unlimited Gym Access", "All Gym Equipment", "All Group Classes", "Locker Room Access"] },
-      { label: "3 Months", price: 19958, save: "Save 12%", features: ["Unlimited Gym Access", "All Gym Equipment", "All Group Classes", "Locker Room Access"] },
-      { label: "6 Months", price: 38556, save: "Save 15%", popular: true, features: ["Unlimited Gym Access", "All Gym Equipment", "All Group Classes", "Locker Room Access", "Expert Trainer Support"] },
-      { label: "1 Year", price: 72576, save: "Save 20%", best: true, features: ["Unlimited Gym Access", "All Gym Equipment", "All Group Classes", "Locker Room Access", "Expert Trainer Support"] },
-    ],
-    couple: [
-      { label: "Day Pass", price: 1800, features: ["Unlimited Gym Access", "All Gym Equipment", "All Group Classes", "Locker Room Access"] },
-      { label: "1 Month", price: 13608, features: ["Unlimited Gym Access", "All Gym Equipment", "All Group Classes", "Locker Room Access"] },
-      { label: "3 Months", price: 35924, save: "Save 12%", features: ["Unlimited Gym Access", "All Gym Equipment", "All Group Classes", "Locker Room Access"] },
-      { label: "6 Months", price: 69400, save: "Save 15%", popular: true, features: ["Unlimited Gym Access", "All Gym Equipment", "All Group Classes", "Locker Room Access", "Expert Trainer Support"] },
-      { label: "1 Year", price: 130636, save: "Save 20%", best: true, features: ["Unlimited Gym Access", "All Gym Equipment", "All Group Classes", "Locker Room Access", "Expert Trainer Support"] },
-    ],
-    family: [
-      { label: "Day Pass", price: 3200, features: ["Unlimited Gym Access", "All Gym Equipment", "All Group Classes", "Locker Room Access"] },
-      { label: "1 Month", price: 24192, features: ["Unlimited Gym Access", "All Gym Equipment", "All Group Classes", "Locker Room Access"] },
-      { label: "3 Months", price: 63834, save: "Save 12%", features: ["Unlimited Gym Access", "All Gym Equipment", "All Group Classes", "Locker Room Access"] },
-      { label: "6 Months", price: 123379, save: "Save 15%", popular: true, features: ["Unlimited Gym Access", "All Gym Equipment", "All Group Classes", "Locker Room Access", "Expert Trainer Support"] },
-      { label: "1 Year", price: 232243, save: "Save 20%", best: true, features: ["Unlimited Gym Access", "All Gym Equipment", "All Group Classes", "Locker Room Access", "Expert Trainer Support"] },
-    ],
-  },
-  spa: {
-    individual: [
-      { label: "Day Pass", price: 1500, features: ["Steam & Sauna Access", "Locker Room Access", "Towel Service"] },
-      { label: "1 Month", price: 10000, features: ["Steam & Sauna Access", "Locker Room Access", "Towel Service"] },
-      { label: "3 Months", price: 27000, save: "Save 10%", features: ["Steam & Sauna Access", "Locker Room Access", "Towel Service", "1 Massage/Month"] },
-      { label: "6 Months", price: 50000, save: "Save 17%", popular: true, features: ["Steam & Sauna Access", "Locker Room Access", "Towel Service", "2 Massages/Month", "Priority Booking"] },
-      { label: "1 Year", price: 90000, save: "Save 25%", best: true, features: ["Steam & Sauna Access", "Locker Room Access", "Towel Service", "3 Massages/Month", "Priority Booking", "VIP Lounge"] },
-    ],
-    couple: [
-      { label: "Day Pass", price: 2700, features: ["Steam & Sauna Access", "Locker Room Access", "Towel Service"] },
-      { label: "1 Month", price: 18000, features: ["Steam & Sauna Access", "Locker Room Access", "Towel Service"] },
-      { label: "3 Months", price: 48600, save: "Save 10%", features: ["Steam & Sauna Access", "Locker Room Access", "Towel Service", "1 Massage/Month"] },
-      { label: "6 Months", price: 90000, save: "Save 17%", popular: true, features: ["Steam & Sauna Access", "Locker Room Access", "Towel Service", "2 Massages/Month", "Priority Booking"] },
-      { label: "1 Year", price: 162000, save: "Save 25%", best: true, features: ["Steam & Sauna Access", "Locker Room Access", "Towel Service", "3 Massages/Month", "Priority Booking", "VIP Lounge"] },
-    ],
-    family: [
-      { label: "Day Pass", price: 4800, features: ["Steam & Sauna Access", "Locker Room Access", "Towel Service"] },
-      { label: "1 Month", price: 32000, features: ["Steam & Sauna Access", "Locker Room Access", "Towel Service"] },
-      { label: "3 Months", price: 86400, save: "Save 10%", features: ["Steam & Sauna Access", "Locker Room Access", "Towel Service", "1 Massage/Month"] },
-      { label: "6 Months", price: 160000, save: "Save 17%", popular: true, features: ["Steam & Sauna Access", "Locker Room Access", "Towel Service", "2 Massages/Month", "Priority Booking"] },
-      { label: "1 Year", price: 288000, save: "Save 25%", best: true, features: ["Steam & Sauna Access", "Locker Room Access", "Towel Service", "3 Massages/Month", "Priority Booking", "VIP Lounge"] },
-    ],
-  },
-};
-
 export default function PricingPage() {
   const [pricingType, setPricingType] = useState<PlanType>("gym");
   const [memberType, setMemberType] = useState<MemberType>("individual");
+  const [settings, setSettings] = useState<Record<string, string>>({});
+  const [dbPlans, setDbPlans] = useState<any[]>([]);
 
-  const plans = PRICING_DATA[pricingType][memberType];
+  useEffect(() => {
+    async function loadContent() {
+      try {
+        const headers = { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` };
+        const [pRes, sRes] = await Promise.all([
+          fetch(`${SUPABASE_URL}/rest/v1/pricing?select=*`, { headers }),
+          fetch(`${SUPABASE_URL}/rest/v1/site_settings?select=*`, { headers })
+        ]);
+        if (pRes.ok) {
+          const data = await pRes.json();
+          setDbPlans(data);
+        }
+        if (sRes.ok) {
+          const data = await sRes.json();
+          const map: Record<string, string> = {};
+          data.forEach((i: any) => { map[i.id] = i.value; });
+          setSettings(map);
+        }
+      } catch (e) {}
+    }
+    loadContent();
+  }, []);
+
+  const plans = dbPlans.filter(p => p.plan_type === pricingType && p.member_type === memberType);
 
   return (
     <main className="min-h-screen bg-[#0b0b0b] text-white font-sans selection:bg-brand/30">
@@ -85,7 +49,7 @@ export default function PricingPage() {
       <section className="relative h-[55vh] min-h-[420px] flex flex-col items-center justify-center text-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <Image
-            src="/hero-gym.png"
+            src={settings.pricing_hero_image || "/hero-gym.png"}
             alt="Pricing"
             fill
             className="object-cover object-center"
@@ -245,7 +209,7 @@ export default function PricingPage() {
       <section className="relative py-28 px-6 text-center overflow-hidden bg-brand">
         <div className="absolute inset-0">
           <Image
-            src="/hero-gym.png"
+            src={settings.cta_bg_image || "/hero-gym.png"}
             alt=""
             fill
             className="object-cover opacity-10 mix-blend-overlay"

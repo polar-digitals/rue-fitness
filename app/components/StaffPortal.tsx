@@ -10,8 +10,8 @@ import { useState, useEffect, useCallback } from "react";
 
 // ─── SUPABASE CONFIG ─────────────────────────────────────────────────────────
 // Replace these with your actual Supabase project values
-const SUPABASE_URL = "https://ommxhoxlkkuxldljydtg.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9tbXhob3hsa2t1eGxkbGp5ZHRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2MTIxOTgsImV4cCI6MjA5MzE4ODE5OH0.BQY2jOV2ebA0ycKocPiJtZVgNiTUWUNJtgp_xNLe37g";
+export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://ommxhoxlkkuxldljydtg.supabase.co";
+export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9tbXhob3hsa2t1eGxkbGp5ZHRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc2MTIxOTgsImV4cCI6MjA5MzE4ODE5OH0.BQY2jOV2ebA0ycKocPiJtZVgNiTUWUNJtgp_xNLe37g";
 
 type SupabaseClient = {
   from: (table: string) => any;

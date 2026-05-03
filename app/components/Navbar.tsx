@@ -2,8 +2,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, X, ChevronRight } from "lucide-react";
+
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./StaffPortal";
 
 const NAV_LINKS = [
   { label: "Home", href: "/" },
@@ -15,7 +17,26 @@ const NAV_LINKS = [
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [logo, setLogo] = useState("/logo.svg");
   const pathname = usePathname();
+
+  useEffect(() => {
+    async function loadLogo() {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/site_settings?id=eq.logo_image&select=value`, {
+          headers: {
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data[0] && data[0].value) setLogo(data[0].value);
+        }
+      } catch (err) {}
+    }
+    loadLogo();
+  }, []);
 
   const isActive = (href: string) => {
     if (href === "/") return pathname === "/";
@@ -29,7 +50,7 @@ export default function Navbar() {
           {/* Logo + Brand Name */}
           <Link href="/" className="flex items-center gap-3 group z-10">
             <Image
-              src="/logo.svg"
+              src={logo}
               alt="Rue Fitness"
               width={36}
               height={36}

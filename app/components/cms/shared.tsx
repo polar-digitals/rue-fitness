@@ -10,6 +10,7 @@ export type ScheduleEntry = { id?: string; day: string; time: string; activity: 
 export type ServiceItem = { id?: string; title: string; description: string; icon_key: string; category: string; sort_order: number };
 export type PricingPlan = { id?: string; plan_type: string; member_type: string; label: string; price: number; save_text: string; features: string; popular: boolean; best: boolean; sort_order: number };
 export type Announcement = { id?: string; message: string; type: string; active: boolean; link_text: string; link_url: string; bg_color: string; created_at?: string };
+export type SiteSetting = { key: string; value: string; description?: string; created_at?: string };
 
 // ─── CONSTANTS ────────────────────────────────────────────
 export const GALLERY_CATEGORIES = ["Gym Floor", "Classes", "Equipment", "Events", "Facility"];
@@ -151,6 +152,25 @@ export async function saveItem(table: string, item: any) {
     } else {
       const { id, created_at, ...rest } = item;
       await supabase.from(table).insert([rest]);
+    }
+    return true;
+  } catch { return false; }
+}
+
+export async function saveSetting(item: any) {
+  try {
+    const { created_at, ...rest } = item;
+    // Using upsert to create or update based on 'id' (which is the setting key)
+    await supabase.from("site_settings").insert([rest]); // Assuming lightweight client insert with Prefer: return=minimal will act as upsert or we can just update then insert
+    // Wait, the lightweight client's insert might not do upsert automatically without onConflict.
+    // Let's try update first, if error or no rows, then insert.
+    // But since we can't easily check affected rows with this simple client, we can fetch first.
+    const existing = await fetchAll("site_settings");
+    const exists = existing.find((e: any) => e.id === item.id);
+    if (exists) {
+      await supabase.from("site_settings").update(rest).eq("id", item.id);
+    } else {
+      await supabase.from("site_settings").insert([rest]);
     }
     return true;
   } catch { return false; }

@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Star,
   Phone,
@@ -15,10 +15,12 @@ import {
   Dumbbell,
   Flame,
   Target,
+  Activity
 } from "lucide-react";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { BookingPage } from "./components/Booking";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./components/StaffPortal";
 
 const TESTIMONIALS = [
   {
@@ -47,29 +49,96 @@ const TESTIMONIALS = [
   },
 ];
 
-const TRAINERS = [
+const FALLBACK_TRAINERS = [
   {
     name: "Binyam Degu",
     role: "Personal Trainer",
     desc: "8 years of experience in weight loss, muscle building, nutrition, and strength training.",
     initials: "BD",
+    img: ""
   },
   {
     name: "Admassu",
     role: "Personal Trainer",
     desc: "9 years of experience specializing in muscle building, nutrition guidance, and strength conditioning.",
     initials: "AD",
+    img: ""
   },
   {
     name: "Natnael Tesfaye",
     role: "CrossFit Coach",
     desc: "Expert in functional fitness, CrossFit methodology, and personalized athletic performance training.",
     initials: "NT",
+    img: ""
   },
 ];
 
+const FALLBACK_SERVICES = [
+  {
+    icon_key: "hiit",
+    title: "Cardio & Dance",
+    description: "Boost stamina and burn fat with high-energy cardio workouts, aerobics, Zumba, spinning, and HIIT training.",
+  },
+  {
+    icon_key: "strength",
+    title: "Strength & Conditioning",
+    description: "Build muscle, power, and endurance with circuit training, CrossFit, functional exercises, and boot camps.",
+  },
+  {
+    icon_key: "personal",
+    title: "Personalized Training",
+    description: "Achieve your unique fitness goals with one-on-one coaching, weight loss programs, and online coaching.",
+  },
+];
+
+const ICON_MAP: Record<string, any> = {
+  aerobics: Activity, zumba: Users, spinning: Zap, dance: Users, hiit: Flame,
+  circuit: Dumbbell, crossfit: Dumbbell, strength: Dumbbell, bodyweight: Dumbbell,
+  functional: Activity, bootcamp: Users, core: Target, muscle: Dumbbell,
+  personal: Target, weightloss: Flame, online: Target
+};
+
 export default function Home() {
   const [showBooking, setShowBooking] = useState(false);
+  const [settings, setSettings] = useState<Record<string, string>>({});
+  const [trainers, setTrainers] = useState<any[]>([]);
+  const [services, setServices] = useState<any[]>([]);
+  const [loadingContent, setLoadingContent] = useState(true);
+
+  useEffect(() => {
+    async function loadDynamicContent() {
+      try {
+        const headers = {
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        };
+        const settingsRes = await fetch(`${SUPABASE_URL}/rest/v1/site_settings?select=*`, { headers });
+        if (settingsRes.ok) {
+          const data = await settingsRes.json();
+          const sMap: Record<string, string> = {};
+          data.forEach((item: any) => { sMap[item.id] = item.value; });
+          setSettings(sMap);
+        }
+
+        const trainersRes = await fetch(`${SUPABASE_URL}/rest/v1/trainers?select=*&order=sort_order.asc`, { headers });
+        if (trainersRes.ok) {
+          const data = await trainersRes.json();
+          if (data && data.length > 0) setTrainers(data);
+        }
+
+        const servicesRes = await fetch(`${SUPABASE_URL}/rest/v1/services?select=*&order=sort_order.asc`, { headers });
+        if (servicesRes.ok) {
+          const data = await servicesRes.json();
+          if (data && data.length > 0) setServices(data);
+        }
+      } catch (err) {
+        console.error("Error loading dynamic content", err);
+      } finally {
+        setLoadingContent(false);
+      }
+    }
+    loadDynamicContent();
+  }, []);
 
   const rueBrand = {
     logoSrc: "/logo.svg",
@@ -91,7 +160,7 @@ export default function Home() {
       <section className="relative min-h-screen flex items-center justify-center text-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <Image
-            src="/hero-gym.png"
+            src={settings.hero_image || "/hero-gym.png"}
             alt="Rue Fitness Gym"
             fill
             className="object-cover"
@@ -109,17 +178,12 @@ export default function Home() {
             Addis Ababa&apos;s Premium Fitness Destination
           </div>
 
-          <h1 className="animate-float-up delay-100 text-gradient text-6xl md:text-8xl lg:text-9xl font-black uppercase tracking-tighter font-space leading-[0.85] mb-6 drop-shadow-2xl">
-            Train
-            <br />
-            With
-            <br />
-            Purpose.
+          <h1 className="animate-float-up delay-100 text-gradient text-6xl md:text-8xl lg:text-9xl font-black uppercase tracking-tighter font-space leading-[0.85] mb-6 drop-shadow-2xl whitespace-pre-line">
+            {settings.hero_heading || "Train\nWith\nPurpose."}
           </h1>
 
           <p className="animate-float-up delay-200 text-lg md:text-xl text-white/70 mb-10 max-w-2xl mx-auto font-medium leading-relaxed">
-            Reach your goals at Rue Fitness. Build strength, improve your
-            health, and change your body in our premium, modern gym.
+            {settings.hero_subheading || "Reach your goals at Rue Fitness. Build strength, improve your health, and change your body in our premium, modern gym."}
           </p>
 
           <div className="animate-float-up delay-300 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -149,7 +213,7 @@ export default function Home() {
       <section className="relative py-32 flex flex-col items-center justify-center text-center overflow-hidden min-h-screen">
         <div className="absolute inset-0 z-0">
           <Image
-            src="/About.png"
+            src={settings.about_image || "/About.png"}
             alt="About Rue Fitness"
             fill
             className="object-cover object-center"
@@ -196,13 +260,11 @@ export default function Home() {
             <span className="text-brand-light text-sm font-bold uppercase tracking-[0.25em] block mb-4">
               Who We Are
             </span>
-            <h2 className="text-3xl md:text-5xl font-black uppercase font-space text-white leading-tight mb-8 drop-shadow-xl">
-              Built On Unity.<br />Driven By Purpose.
+            <h2 className="text-3xl md:text-5xl font-black uppercase font-space text-white leading-tight mb-8 drop-shadow-xl whitespace-pre-line">
+              {settings.about_heading || "Built On Unity.\nDriven By Purpose."}
             </h2>
             <p className="text-white/70 text-base md:text-lg leading-relaxed mb-14 max-w-2xl mx-auto">
-              Rue Fitness was founded on the belief that true progress happens
-              together. Our gym brings together ambition, discipline, and
-              support to create a space where every member feels empowered.
+              {settings.about_text || "Rue Fitness was founded on the belief that true progress happens together. Our gym brings together ambition, discipline, and support to create a space where every member feels empowered."}
             </p>
 
             {/* 3 Pillars Centered */}
@@ -249,45 +311,32 @@ export default function Home() {
         </div>
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 grid md:grid-cols-3 gap-6">
-          {[
-            {
-              Icon: Flame,
-              title: "Cardio & Dance",
-              desc: "Boost stamina and burn fat with high-energy cardio workouts, aerobics, Zumba, spinning, and HIIT training.",
-            },
-            {
-              Icon: Dumbbell,
-              title: "Strength & Conditioning",
-              desc: "Build muscle, power, and endurance with circuit training, CrossFit, functional exercises, and boot camps.",
-            },
-            {
-              Icon: Target,
-              title: "Personalized Training",
-              desc: "Achieve your unique fitness goals with one-on-one coaching, weight loss programs, and online coaching.",
-            },
-          ].map(({ Icon, title, desc }, i) => (
-            <div
-              key={i}
-              className="group p-8 rounded-2xl bg-[#0b0b0b] border border-white/[0.06] hover:border-brand/40 transition-all card-glow"
-            >
-              <div className="w-14 h-14 rounded-xl bg-brand/15 border border-brand/25 flex items-center justify-center mb-6 group-hover:bg-brand/25 transition-colors">
-                <Icon className="w-7 h-7 text-brand-light" />
-              </div>
-              <h3 className="text-white font-bold text-base uppercase tracking-widest mb-3">
-                {title}
-              </h3>
-              <p className="text-white/45 text-sm leading-relaxed mb-6">
-                {desc}
-              </p>
-              <Link
-                href="/services"
-                className="inline-flex items-center gap-2 text-brand-light text-sm font-bold uppercase tracking-widest hover:gap-3 transition-all"
+          {(services.length > 0 ? services : FALLBACK_SERVICES).map(({ icon_key, title, description }, i) => {
+            const Icon = ICON_MAP[icon_key] || Dumbbell;
+            return (
+              <div
+                key={i}
+                className="group p-8 rounded-2xl bg-[#0b0b0b] border border-white/[0.06] hover:border-brand/40 transition-all card-glow"
               >
-                Explore More
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-          ))}
+                <div className="w-14 h-14 rounded-xl bg-brand/15 border border-brand/25 flex items-center justify-center mb-6 group-hover:bg-brand/25 transition-colors">
+                  <Icon className="w-7 h-7 text-brand-light" />
+                </div>
+                <h3 className="text-white font-bold text-base uppercase tracking-widest mb-3">
+                  {title}
+                </h3>
+                <p className="text-white/45 text-sm leading-relaxed mb-6">
+                  {description}
+                </p>
+                <Link
+                  href="/services"
+                  className="inline-flex items-center gap-2 text-brand-light text-sm font-bold uppercase tracking-widest hover:gap-3 transition-all"
+                >
+                  Explore More
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            );
+          })}
         </div>
       </section>
 
@@ -305,22 +354,25 @@ export default function Home() {
         </div>
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 grid md:grid-cols-3 gap-6">
-          {TRAINERS.map((trainer, i) => (
+          {(trainers.length > 0 ? trainers : FALLBACK_TRAINERS).map((trainer, i) => (
             <div
               key={i}
               className="group rounded-2xl overflow-hidden border border-white/[0.06] hover:border-brand/40 transition-all card-glow"
             >
-              {/* Placeholder avatar */}
               <div className="h-64 bg-gradient-to-b from-surface-elevated to-surface flex items-center justify-center relative">
-                <div className="w-24 h-24 rounded-full bg-brand/20 border-2 border-brand/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                  <span className="text-3xl font-black text-brand-light/70 uppercase">
-                    {trainer.initials}
-                  </span>
-                </div>
+                {trainer.img ? (
+                  <Image src={trainer.img} alt={trainer.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-brand/20 border-2 border-brand/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <span className="text-3xl font-black text-brand-light/70 uppercase">
+                      {trainer.initials || trainer.name.substring(0, 2)}
+                    </span>
+                  </div>
+                )}
                 <div className="absolute inset-0 bg-brand/0 group-hover:bg-brand/5 transition-colors" />
               </div>
 
-              <div className="p-6 bg-surface">
+              <div className="p-6 bg-surface relative z-10">
                 <p className="text-white font-bold text-sm uppercase tracking-widest mb-1">
                   {trainer.name}
                 </p>
@@ -328,7 +380,7 @@ export default function Home() {
                   {trainer.role}
                 </p>
                 <p className="text-white/45 text-sm leading-relaxed">
-                  {trainer.desc}
+                  {trainer.bio || trainer.desc}
                 </p>
               </div>
             </div>

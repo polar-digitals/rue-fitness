@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import {
   ArrowRight,
   Users,
@@ -13,8 +14,26 @@ import {
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../components/StaffPortal";
 
 export default function AboutPage() {
+  const [settings, setSettings] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    async function loadContent() {
+      try {
+        const headers = { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` };
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/site_settings?select=*`, { headers });
+        if (res.ok) {
+          const data = await res.json();
+          const map: Record<string, string> = {};
+          data.forEach((i: any) => { map[i.id] = i.value; });
+          setSettings(map);
+        }
+      } catch (e) {}
+    }
+    loadContent();
+  }, []);
   return (
     <main className="min-h-screen bg-[#0b0b0b] text-white font-sans selection:bg-brand/30">
       <Navbar />
@@ -23,7 +42,7 @@ export default function AboutPage() {
       <section className="relative h-[70vh] min-h-[500px] flex items-center justify-center text-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <Image
-            src="/About.png"
+            src={settings.about_hero_image || "/About.png"}
             alt="Rue Fitness"
             fill
             className="object-cover object-center"
@@ -83,7 +102,7 @@ export default function AboutPage() {
 
           <div className="relative h-[420px] rounded-2xl overflow-hidden ring-1 ring-white/[0.07] shadow-2xl">
             <Image
-              src="/hero-gym.png"
+              src={settings.about_story_image || "/hero-gym.png"}
               alt="Rue Fitness"
               fill
               className="object-cover object-center"
@@ -221,7 +240,7 @@ export default function AboutPage() {
       <section className="relative py-28 px-6 text-center overflow-hidden bg-brand">
         <div className="absolute inset-0">
           <Image
-            src="/hero-gym.png"
+            src={settings.cta_bg_image || "/hero-gym.png"}
             alt=""
             fill
             className="object-cover opacity-10 mix-blend-overlay"
