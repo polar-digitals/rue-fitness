@@ -172,21 +172,29 @@ export default function PricingPage() {
               </div>
 
               <ul className="space-y-2 mb-6 flex-1">
-                {plan.features.map((f: string, j: number) => (
-                  <li
-                    key={j}
-                    className="flex items-start gap-2 text-white/55 text-xs"
-                  >
-                    <Check
-                      className={`w-3.5 h-3.5 shrink-0 mt-px ${
-                        plan.popular || plan.best
-                          ? "text-brand-light"
-                          : "text-white/25"
-                      }`}
-                    />
-                    {f}
-                  </li>
-                ))}
+                {(() => {
+                  let fList: string[] = [];
+                  if (Array.isArray(plan.features)) fList = plan.features;
+                  else if (typeof plan.features === 'string') {
+                    try { fList = JSON.parse(plan.features); }
+                    catch(e) { fList = plan.features.split(',').map((s: string) => s.trim()); }
+                  }
+                  return fList.map((f: string, j: number) => (
+                    <li
+                      key={j}
+                      className="flex items-start gap-2 text-white/55 text-xs"
+                    >
+                      <Check
+                        className={`w-3.5 h-3.5 shrink-0 mt-px ${
+                          plan.popular || plan.best
+                            ? "text-brand-light"
+                            : "text-white/25"
+                        }`}
+                      />
+                      {f}
+                    </li>
+                  ));
+                })()}
               </ul>
 
               <button

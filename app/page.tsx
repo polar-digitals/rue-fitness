@@ -311,7 +311,7 @@ export default function Home() {
         </div>
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 grid md:grid-cols-3 gap-6">
-          {(services.length > 0 ? services : FALLBACK_SERVICES).map(({ icon_key, title, description }, i) => {
+          {FALLBACK_SERVICES.map(({ icon_key, title, description }, i) => {
             const Icon = ICON_MAP[icon_key] || Dumbbell;
             return (
               <div
@@ -353,11 +353,11 @@ export default function Home() {
           </h2>
         </div>
 
-        <div className="relative z-10 max-w-5xl mx-auto px-6 grid md:grid-cols-3 gap-6">
+        <div className="relative z-10 max-w-5xl mx-auto px-6 flex flex-wrap justify-center gap-6">
           {(trainers.length > 0 ? trainers : FALLBACK_TRAINERS).map((trainer, i) => (
             <div
               key={i}
-              className="group rounded-2xl overflow-hidden border border-white/[0.06] hover:border-brand/40 transition-all card-glow"
+              className="group rounded-2xl overflow-hidden border border-white/[0.06] hover:border-brand/40 transition-all card-glow w-full sm:w-[calc(50%-0.75rem)] md:w-[calc(33.333%-1rem)] max-w-xs"
             >
               <div className="h-64 bg-gradient-to-b from-surface-elevated to-surface flex items-center justify-center relative">
                 {trainer.img ? (

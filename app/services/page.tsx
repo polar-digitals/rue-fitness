@@ -154,6 +154,22 @@ function ServiceCard({
   );
 }
 
+const FALLBACK_SERVICES = [
+  { category: "Cardio & Dance", icon_key: "aerobics", title: "Aerobics", description: "Boost energy with high-intensity rhythmic exercise and music." },
+  { category: "Cardio & Dance", icon_key: "zumba", title: "Zumba", description: "Dance your way to fitness with high-energy Latin and international music." },
+  { category: "Cardio & Dance", icon_key: "spinning", title: "Spinning", description: "Intense indoor cycling focused on endurance and strength." },
+  { category: "Cardio & Dance", icon_key: "hiit", title: "HIIT Training", description: "Short bursts of intense exercise followed by brief recovery periods." },
+  
+  { category: "Strength & Conditioning", icon_key: "crossfit", title: "CrossFit", description: "High-intensity functional movements for complete physical fitness." },
+  { category: "Strength & Conditioning", icon_key: "strength", title: "Weightlifting", description: "Build maximum muscle strength and power with structured lifting." },
+  { category: "Strength & Conditioning", icon_key: "circuit", title: "Circuit Training", description: "Move through various stations for a full-body conditioning workout." },
+  { category: "Strength & Conditioning", icon_key: "bootcamp", title: "Fitness Boot Camp", description: "Military-style group exercise for intense weight loss and strength." },
+
+  { category: "Personalized Training", icon_key: "personal", title: "1-on-1 Coaching", description: "Personalized attention and custom workout plans tailored to your goals." },
+  { category: "Personalized Training", icon_key: "online", title: "Online Coaching", description: "Stay fit from anywhere with expert virtual guidance and plans." },
+  { category: "Personalized Training", icon_key: "weightloss", title: "Weight Loss Program", description: "Dedicated coaching focused on sustainable fat loss and nutrition." },
+];
+
 const CAT_META = [
   {
     id: "Cardio & Dance",
@@ -239,7 +255,7 @@ export default function ServicesPage() {
       <section className="py-20 bg-[#0b0b0b]">
         <div className="max-w-5xl mx-auto px-6 space-y-28">
           {CAT_META.map((cat, ci) => {
-            const catServices = services.filter(s => s.category === cat.id);
+            const catServices = (services.length > 0 ? services : FALLBACK_SERVICES).filter(s => s.category === cat.id);
             if (catServices.length === 0) return null;
 
             return (
