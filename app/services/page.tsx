@@ -1,11 +1,14 @@
-import { useState, useEffect } from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { ArrowRight, Dumbbell, Flame, Target } from "lucide-react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../components/StaffPortal";
-
 // ── SVG Silhouette Icons ──
-const SvcIcons: Record<string, JSX.Element> = {
+const SvcIcons: Record<string, React.JSX.Element> = {
   aerobics: (
     <svg viewBox="0 0 64 64" fill="currentColor" className="w-14 h-14">
       <ellipse cx="32" cy="8" rx="5" ry="5" />
